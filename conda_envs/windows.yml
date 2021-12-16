@@ -35,4 +35,3 @@ dependencies:
   - pip:
       - cloudpickle==2.0.0
       - gym==0.21.0
-prefix: C:\Users\jewik\miniconda3\envs\snape
