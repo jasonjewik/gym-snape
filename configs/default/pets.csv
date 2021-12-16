@@ -1,6 +1,7 @@
-Tier,Name,Attack,Health,Is_token,Roll_chance
-1,Ant,2,1,FALSE,0.1
-1,Beaver,2,2,FALSE,0.2
-1,Cricket,1,2,FALSE,0.4
-1,Duck,1,2,FALSE,0.2
-1,Fish,2,3,FALSE,0.1
+Tier,Name,Attack,Health,Is_token,Roll_chance,Gold,Food_id
+0,Empty,0,0,FALSE,0,0,0
+1,Ant,2,1,FALSE,0.1,3,0
+1,Beaver,2,2,FALSE,0.2,3,0
+1,Cricket,1,2,FALSE,0.4,3,0
+1,Duck,1,2,FALSE,0.2,3,0
+1,Fish,2,3,FALSE,0.1,3,0

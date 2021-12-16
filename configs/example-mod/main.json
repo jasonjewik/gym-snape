@@ -1,9 +1,9 @@
 {
   "n_shop_slots": {
-    "n_pets": 3,
-    "n_food": 2
+    "n_pets": 4,
+    "n_food": 1
   },
-  "n_deck_slots": 5,
+  "n_deck_slots": 6,
   "n_trophies": 10,
   "n_hearts": 10,
   "n_gold": 10,
