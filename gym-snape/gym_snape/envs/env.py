@@ -13,49 +13,8 @@ import pandas as pd
 class GameEnv(gym.Env):
     metadata = {'render.modes': ['ansi']}
 
-    def __init__(self, config: str = 'configs/default'):
-        super(GameEnv, self).__init__()
-
-        """
-        Read configuration directory files.
-        """
-        config_dir = Path(config)
-        main_config_file = config_dir.joinpath('main.json')
-        with open(main_config_file, 'r') as f:
-            self.main_config = json.load(f)
-
-        pets_config_file = config_dir.joinpath('pets.csv')
-        self.pets_config = pd.read_csv(pets_config_file)
-
-        food_config_file = config_dir.joinpath('food.csv')
-        self.food_config = pd.read_csv(food_config_file, quotechar='"')
-
-        """
-        Validate the configuration files.
-        """
-        default_config = Path('configs/default')
-        default_pet_csv = pd.read_csv(default_config.joinpath('pets.csv'))
-        default_food_csv = pd.read_csv(default_config.joinpath('food.csv'),
-                                       quotechar='"')
-
-        # Check for required columns
-        req_pet_cols = default_pet_csv.columns
-        req_food_cols = default_food_csv.columns
-        missing_pet_cols = set(self.pets_config.columns) - set(req_pet_cols)
-        missing_food_cols = set(self.food_config.columns) - set(req_food_cols)
-        assert len(missing_pet_cols) == 0, \
-            f'Missing columns {missing_pet_cols} from pet config'
-        assert len(missing_food_cols) == 0, \
-            f'Missing columns {missing_food_cols} from food config'
-
-        # Check for specification of "empty"
-        self.EMPTY_ID = 0
-        empty_pet = default_pet_csv.loc[self.EMPTY_ID]
-        empty_food = default_food_csv.loc[self.EMPTY_ID]
-        assert (self.pets_config.loc[self.EMPTY_ID] == empty_pet).all(), \
-            f'Pets config must specify the "empty" pet in the first row:\n{empty_pet}'
-        assert (self.food_config.loc[self.EMPTY_ID] == empty_food).all(), \
-            f'Food config must specify the "empty" food in the first row:\n{empty_food}'
+    def __init__(self):
+        super().__init__()
 
         """
         N = total number of shop slots (empty and non-empty)

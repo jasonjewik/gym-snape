@@ -1,1 +1,1 @@
-from gym_snape.envs.game_env import GameEnv
+from gym_snape.envs.env import GameEnv

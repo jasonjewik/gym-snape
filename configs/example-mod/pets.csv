@@ -1,4 +1,0 @@
-Tier,Name,Attack,Health,Is_token,Roll_chance,Gold,Food_id
-0,Empty,0,0,FALSE,0,0,0
-1,Ant,2,1,FALSE,0.5,3,0
-1,Beaver,2,2,FALSE,0.5,3,0
