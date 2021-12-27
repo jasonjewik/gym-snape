@@ -7,18 +7,17 @@ class Food(ABC):
         """What happens when the food is used."""
         raise NotImplementedError
 
-    @property
-    def deck(self):
-        return self._deck
+    def __str__(self):
+        width = 10
+        border = '+----------+'
+        name_row = f'|{self._name:{width}}|'
+        empty_row = ['|          |'] * 5
+        result = [border, name_row] + empty_row + [border]
+        result = '\n'.join(result)
+        return result
 
-    @deck.setter
-    def deck(self, value):
+    def assign_deck(self, value):
         self._deck = value
 
-    @property
-    def shop(self):
-        return self._shop
-
-    @shop.setter
-    def shop(self, value):
+    def assign_shop(self, value):
         self._shop = value
