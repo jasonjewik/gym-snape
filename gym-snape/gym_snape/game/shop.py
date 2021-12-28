@@ -1,5 +1,6 @@
 # Standard library imports
 from collections import namedtuple
+from typing import Literal
 
 # Local application imports
 from gym_snape.game import pets, food
@@ -51,12 +52,22 @@ class Shop:
 
         # Maps tier numbers to the pets that belong to that tier
         self._all_pets = {
-            1: pets.tier1.ROLL_CHANCES
+            1: pets.tier1.ROLL_CHANCES,
+            2: {},
+            3: {},
+            4: {},
+            5: {},
+            6: {}
         }
 
         # Maps tier numbers to the food items that belong to that tier
         self._all_food = {
-            1: food.tier1.ROLL_CHANCES
+            1: food.tier1.ROLL_CHANCES,
+            2: {},
+            3: {},
+            4: {},
+            5: {},
+            6: {}
         }
 
         # Used for rolling the shop
@@ -90,8 +101,8 @@ class Shop:
             index -= len(self._pet_slots)
             self._food_slots[index] = ShopItem()
 
-    def __len__(self):
-        """Returns the number of currently available pet and food slots."""
+    def __len__(self) -> Literal[7]:
+        """Returns the total number of pet and food slots (7, by default)."""
         return len(self._pet_slots) + len(self._food_slots)
 
     def __str__(self):
@@ -160,8 +171,9 @@ class Shop:
             avail_food.extend(self._all_food[t].keys())
             pet_roll_probs.extend(self._all_pets[t].values())
             food_roll_probs.extend(self._all_food[t].values())
-        pet_roll_probs = np.array(pet_roll_probs) / self._highest_avail_tier
-        food_roll_probs = np.array(food_roll_probs) / self._highest_avail_tier
+        # TODO: Add other pets/food items and uncomment the below lines
+        # pet_roll_probs = np.array(pet_roll_probs) / self._highest_avail_tier
+        # food_roll_probs = np.array(food_roll_probs) / self._highest_avail_tier
 
         # Pick and set pets into non-frozen slots
         pets = self.rng.choice(

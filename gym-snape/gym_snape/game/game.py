@@ -35,6 +35,8 @@ def check_game_over(class_method: Callable[P, T]) -> Callable[P, T]:
         if not self.game_over:
             result = class_method(self, *args, **kwargs)
             return result
+        else:
+            print('This game has ended. No further actions can be taken.')
     return _impl
 
 
@@ -63,7 +65,6 @@ class Game:
         self._GOLD_PER_TURN: Final = 10
 
         self._ROLL_COST: Final = 1
-        self._RESALE_VALUE_PER_LEVEL: Final = 1
 
         self.display = display
         self._n_actions_taken = 0
@@ -135,6 +136,10 @@ class Game:
     def __call__(self, *args: Any, **kwds: Any):
         """Prints self when called."""
         print(self)
+
+    @property
+    def turn(self) -> int:
+        return self._turn
 
     @property
     def lives(self) -> int:
@@ -576,7 +581,7 @@ class Game:
 
         pet = self.deck[index]
         if pet:
-            self._n_gold += self._RESALE_VALUE_PER_LEVEL * pet.level
+            self._n_gold += pet.gold_cost
             pet.on_sell()
             del self.deck[index]
 
@@ -1003,22 +1008,24 @@ class Game:
             if their_pet:
                 their_pet.on_battle_end()
 
-        # Print challenger's game state as a result of the battle
-        challenger_str = [
-            '__   __        ',
-            '\\ \\ / /__ _  _ ',
-            ' \\ V / _ \\ || |',
-            '  |_|\\___/\\_,_|'
-        ]
-        print('\n'.join(challenger_str))
+        # Get new turn for challenger
+        if self.display:
+            challenger_str = [
+                '__   __        ',
+                '\\ \\ / /__ _  _ ',
+                ' \\ V / _ \\ || |',
+                '  |_|\\___/\\_,_|'
+            ]
+            print('\n'.join(challenger_str))
         self._new_turn()
 
-        # Print opponent's game state as a result of the battle
-        opponent_str = [
-            ' ___         ',
-            '| __|__  ___ ',
-            '| _/ _ \\/ -_)',
-            '|_|\\___/\\___|'
-        ]
-        print('\n'.join(opponent_str))
+        # Get new turn for foe
+        if self.display:
+            opponent_str = [
+                ' ___         ',
+                '| __|__  ___ ',
+                '| _/ _ \\/ -_)',
+                '|_|\\___/\\___|'
+            ]
+            print('\n'.join(opponent_str))
         other_game_instance._new_turn()

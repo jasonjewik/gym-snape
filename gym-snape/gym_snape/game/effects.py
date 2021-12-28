@@ -1,5 +1,5 @@
 """
-A dictionary that maps effect abbreviations to effect descriptions.
+Defines a dictionary that maps effect abbreviations to effect descriptions.
 """
 
 effects = {
@@ -10,6 +10,6 @@ effects = {
     'Glc': 'Garlic armor: Reduce incoming damage by 2 (can\'t reduce below 1).',
     'Mln': 'Melon armor: Reduce incoming damage by 20 once.',
     'Bee': 'Honey bee: When animal faints, summon a 1/1 Honey Bee.',
-    '1up': 'Extra life: When animal fanits, revie again as a 1/1.',
+    '1up': 'Extra life: When animal faints, revive again as a 1/1.',
     'Cct': 'Coconut shield: Negates all damage once.'
 }

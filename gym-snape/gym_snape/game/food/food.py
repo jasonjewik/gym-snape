@@ -8,9 +8,12 @@ class Food(ABC):
     The base class for food items. 
 
     The method `on_use` must be overriden in objects that subclass this.
+    A food's name must be at least 3 characters long and these first 3
+    characters must be unique among all foods.
     """
 
     def __init__(self):
+        self._name = ''
         self._last_op_success = True
         self._gold_cost = 3
 
@@ -23,6 +26,14 @@ class Food(ABC):
         result = [border, name_row] + empty_row + [border]
         result = '\n'.join(result)
         return result
+
+    @property
+    def id(self):
+        """
+        Returns the concatenated integer representations of the first 3
+        chars of the food's name.
+        """
+        return int(''.join([str(ord(ch)) for ch in self._name[:3]]))
 
     @property
     def success(self):

@@ -14,9 +14,9 @@ import numpy as np
 class Ant(Pet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._name = 'ANT'
         self.attack = 2
         self.health = 1
-        self._name = 'ANT'
 
     def on_faint(self):
         """Give a random friend +(2*level) attack, +(1*level) health."""
@@ -34,9 +34,9 @@ class Ant(Pet):
 class Beaver(Pet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._name = 'BEAVER'
         self.attack = 2
         self.health = 2
-        self._name = 'BEAVER'
 
     def on_sell(self):
         """Give 2 random friends +(1*level) health."""
@@ -55,9 +55,9 @@ class Beaver(Pet):
 class Cricket(Pet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._name = 'CRICKET'
         self.attack = 1
         self.health = 2
-        self._name = 'CRICKET'
 
     def on_faint(self):
         """Summon a Zombie Cricket."""
@@ -71,9 +71,9 @@ class Cricket(Pet):
 class Fish(Pet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._name = 'FISH'
         self.attack = 2
         self.health = 3
-        self._name = 'FISH'
 
     def on_level_up(self):
         """Give all friends +(1*level) attack, +(1*level) health."""
@@ -87,9 +87,9 @@ class Fish(Pet):
 class Horse(Pet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._name = 'HORSE'
         self.attack = 2
         self.health = 1
-        self._name = 'HORSE'
 
     def on_friend_summoned(self, index):
         """Give the friend +1 attack until end of battle."""
@@ -101,9 +101,9 @@ class Horse(Pet):
 class Mosquito(Pet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._name = 'MOSQUITO'
         self.attack = 2
         self.health = 2
-        self._name = 'MOSQUITO'
 
     def on_battle_start(self):
         """Deal 1 damage to (1*level) random enemies."""
@@ -119,9 +119,9 @@ class Mosquito(Pet):
 class Otter(Pet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._name = 'OTTER'
         self.attack = 1
         self.health = 2
-        self._name = 'OTTER'
 
     def on_buy(self):
         """Give a random friend +(1*level) health, +(1*level) attack."""
@@ -140,9 +140,9 @@ class Otter(Pet):
 class Pig(Pet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._name = 'PIG'
         self.attack = 3
         self.health = 1
-        self._name = 'PIG'
 
     def on_sell(self):
         """Gain +(1*level) gold."""
@@ -153,9 +153,9 @@ class Pig(Pet):
 class Sloth(Pet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._name = 'SLOTH'
         self.attack = 1
         self.health = 1
-        self._name = 'SLOTH'
 
 
 ROLL_CHANCES = {

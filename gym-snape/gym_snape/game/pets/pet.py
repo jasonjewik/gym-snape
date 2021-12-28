@@ -3,17 +3,24 @@ import typing
 from typing import Final, Optional
 
 # Local application imports
-from gym_snape.game import effects
+from gym_snape.game.effects import effects
 
 
 class Pet:
-    """The base class for pets."""
+    """
+    The base class for pets.
+
+    A pet's name must be at least 3 characters long and these first 3
+    characters must be unique among all pets.
+    """
 
     def __init__(self):
         self._MAX_ATTACK: Final = 50
         self._MAX_HEALTH: Final = 50
         self._EXP_TO_LEVEL_UP: Final = (2, 3)
         self._MAX_LEVEL: Final = len(self._EXP_TO_LEVEL_UP) + 1
+
+        self._name = ''
 
         self._health = 0
         self._health_buff = 0
@@ -128,6 +135,14 @@ class Pet:
     """End comparators."""
 
     @property
+    def id(self) -> int:
+        """
+        Returns the concatenated integer representations of the first 3
+        chars of the pet's name.
+        """
+        return int(''.join([str(ord(ch)) for ch in self._name[:3]]))
+
+    @property
     def health(self):
         return self._health
 
@@ -223,6 +238,11 @@ class Pet:
         else:
             raise ValueError(f'{value} not in {effects}')
 
+    @property
+    def effect_id(self) -> int:
+        effect = '...' if self.effect is None else self.effect
+        return int(''.join([str(ord(ch)) for ch in effect]))
+
     @typing.final
     def assign_game(self, game):
         """Assigns a game to this pet."""
@@ -250,7 +270,7 @@ class Pet:
 
     def on_buy(self, *args, **kwargs):
         """What happens when this pet is bought from the shop."""
-        pass
+        self._gold_cost = 1
 
     def on_sell(self, *args, **kwargs):
         """What happens when this pet is sold."""
@@ -331,4 +351,4 @@ class Pet:
 
     def on_level_up(self, *args, **kwargs):
         """What happens when this pet levels up."""
-        pass
+        self._gold_cost += 1
