@@ -1,3 +1,7 @@
+"""
+A dictionary that maps effect abbreviations to effect descriptions.
+"""
+
 effects = {
     'Bne': 'Bone attack: Deal an additional 5 damage.',
     'Spl': 'Splash attack: Deal an additional 5 damage to the animal behind.',

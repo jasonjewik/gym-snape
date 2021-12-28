@@ -1,5 +1,13 @@
-from gym_snape.game.pets.pet import Pet
+"""
+Definitions of the tier 1 pets: Ant, Beaver, Cricket, Fish, Horse, Mosquito, 
+Otter, Pig, and Sloth. Also defines each pet's roll chance.
+"""
+
+# Local application imports
+from gym_snape.game.pets import Pet
 from gym_snape.game.pets import tokens
+
+# Third party imports
 import numpy as np
 
 

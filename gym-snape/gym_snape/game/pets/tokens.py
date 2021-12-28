@@ -1,4 +1,9 @@
-from gym_snape.game.pets.pet import Pet
+"""
+Definitions of the tokens: HoneyBee and ZombieCricket.
+"""
+
+# Local application imports
+from gym_snape.game.pets import Pet
 
 
 class HoneyBee(Pet):
