@@ -32,7 +32,7 @@ class Deck:
             if self._pets[index] is None:
                 value.assign_friends(self)
                 self._pets[index] = value
-                for pet in self:
+                for pet in self:  # trigger on summon abilities
                     if pet:
                         pet.on_friend_summoned(index)
             # Add pet to slot containing pet of same type
@@ -48,7 +48,7 @@ class Deck:
             value.on_use(index)
             # If food was successfully consumed and the slot contains a pet
             if value.success and self._pets[index]:
-                self._pets[index].on_consume_food()
+                self._pets[index].on_eat_food()
             self._last_op_success = value.success
 
         # Any other argument is invalid
@@ -104,6 +104,57 @@ class Deck:
         count = sum([1 for p in self if p])
         return count == 0
 
+    def index(self, pet: Pet):
+        """Returns the index of the given pet, -1 if not found."""
+        self._last_op_success = False
+        index = -1
+        for i in range(len(self)):
+            if self[i] and id(self[i]) == id(pet):
+                index = i
+                self._last_op_success = True
+        return index
+
+    def append(self, pet: Pet):
+        """Puts the given pet into the first available slot from the back."""
+        self._last_op_success = False
+        for i in range(len(self) - 1, -1, -1):
+            if self[i] is None:
+                self[i] = pet
+                self._last_op_success = True
+                break
+
+    def insert(self, index: int, pet: Pet):
+        """
+        Puts the given pet into the given deck slot.
+
+        If the slot is filled, we try to create room by shifting either forward
+        or backward.
+
+        Parameters
+        ----------
+        index: int
+            The deck slot to insert into.
+
+        pet: Pet
+            The pet to insert.
+        """
+        self._last_op_success = False
+        if self[index] is None:
+            self[index] = pet
+            self._last_op_success = True
+        else:
+            # Try shifting backward
+            self._shift_backward(index)
+            if self[index] is None:
+                self[index] = pet
+                self._last_op_success = True
+            # Try shifting forward
+            if not self.success:
+                self._shift_forward(index)
+                if self[index] is None:
+                    self[index] = pet
+                    self._last_op_success = True
+
     def swap(self, source: int, destination: int):
         """
         Swaps the contents of two deck slots.
@@ -154,7 +205,7 @@ class Deck:
         if self.success:
             del self[source]
 
-    def shift_forward(self):
+    def shift_all_forward(self):
         """
         Shifts the deck forward until the 0th slot is non-empty.
 
@@ -164,3 +215,43 @@ class Deck:
         while i < self.N_DECK_SLOTS and self._pets[0] is None:
             self._pets = self._pets[1:] + [None]
             i += 1
+
+    def _shift_forward(self, index: int):
+        """
+        Shifts all slots starting with the given index forward.
+
+        Tries to make the given slot empty.
+        """
+        front = self._pets[:index+1]
+        back = self._pets[index+1:]
+        i = len(front) - 1
+        while True:
+            if front[-1] is None:  # we have cleared a spot
+                break
+            elif i == -1:  # we tried pushing everything already
+                break
+            elif front[i] is None:  # we have space to push up
+                front = front[:i] + front[i+1:] + [None]
+            else:
+                i -= 1
+        self._pets = front + back
+
+    def _shift_backward(self, index: int):
+        """
+        Shifts all slots starting with the given index backward.
+
+        Tries to make the given slot empty.
+        """
+        front = self._pets[:index+1]
+        back = self._pets[index+1:]
+        i = 0
+        while True:
+            if back[0] is None:  # we have cleared a spot
+                break
+            elif i == len(back):  # we tried pushing everything already
+                break
+            elif back[i] is None:  # we have space to push back
+                back = [None] + back[:i] + back[i+1:]
+            else:
+                i += 1
+        self._pets = front + back

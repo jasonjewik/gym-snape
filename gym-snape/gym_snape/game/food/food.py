@@ -16,12 +16,14 @@ class Food(ABC):
         self._name = ''
         self._last_op_success = True
         self._gold_cost = 3
+        self._health = 0
+        self._attack = 0
 
     def __str__(self):
         """Returns the name of this food item on a card."""
         width = 10
         border = '+----------+'
-        name_row = f'|{self._name:{width}}|'
+        name_row = f'|{self._name[:width]:{width}}|'
         empty_row = ['|          |'] * 5
         result = [border, name_row] + empty_row + [border]
         result = '\n'.join(result)
@@ -42,6 +44,36 @@ class Food(ABC):
     @property
     def gold_cost(self):
         return self._gold_cost
+
+    @gold_cost.setter
+    def gold_cost(self, value: int):
+        if type(value) != int:
+            raise TypeError('gold cost must be integer value')
+        elif value < 0:
+            raise Warning('negative gold cost set to 0')
+        self._gold_cost = max(0, value)
+
+    @property
+    def health(self):
+        return self._health
+
+    @health.setter
+    def health(self, value: int):
+        if type(value) != int:
+            raise TypeError('health must be integer value')
+        else:
+            self._health = value
+
+    @property
+    def attack(self):
+        return self._attack
+
+    @attack.setter
+    def attack(self, value: int):
+        if type(value) != int:
+            raise TypeError('attack must be integer value')
+        else:
+            self._attack = value
 
     @abstractmethod
     def on_use(self, *args, **kwargs):

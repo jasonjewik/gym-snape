@@ -13,13 +13,13 @@ import numpy as np
 
 
 class Snape(gym.Env):
-    metadata = {'render.modes': ['ansi']}
+    metadata = {'render.modes': ['ansi']}   
 
-    def __init__(self):
+    def __init__(self, display: bool = False):
         super().__init__()
 
         # Create a game instance
-        self.game = Game()
+        self.game = Game(display=display)
 
         # Initial opponent is no one
         self._opponent = None
@@ -297,9 +297,9 @@ class Snape(gym.Env):
                 shop_state[i] = {
                     'type': self.IS_FOOD,
                     'id': food.id,
-                    'health': 0,
+                    'health': food.health,
                     'health_buff': 0,
-                    'attack': 0,
+                    'attack': food.attack,
                     'attack_buff': 0,
                     'effect_id': 0,
                     'gold_cost': food.gold_cost,

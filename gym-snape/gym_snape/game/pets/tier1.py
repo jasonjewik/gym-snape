@@ -1,23 +1,28 @@
 """
 Definitions of the tier 1 pets: Ant, Beaver, Cricket, Fish, Horse, Mosquito, 
-Otter, Pig, and Sloth. Also defines each pet's roll chance.
+Otter, Pig, and Sloth.
 """
+
+__all__ = ['Ant', 'Beaver', 'Cricket', 'Fish', 'Horse', 'Mosquito', 'Otter',
+           'Pig', 'Sloth']
 
 # Local application imports
 from gym_snape.game.pets import Pet
 from gym_snape.game.pets import tokens
+from gym_snape.game.pets.pet import capture_action, duplicate_action
 
 # Third party imports
 import numpy as np
 
 
 class Ant(Pet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self._name = 'ANT'
         self.attack = 2
         self.health = 1
 
+    @duplicate_action
     def on_faint(self):
         """Give a random friend +(2*level) attack, +(1*level) health."""
         super().on_faint()
@@ -32,12 +37,13 @@ class Ant(Pet):
 
 
 class Beaver(Pet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self._name = 'BEAVER'
         self.attack = 2
         self.health = 2
 
+    @capture_action
     def on_sell(self):
         """Give 2 random friends +(1*level) health."""
         super().on_sell()
@@ -53,28 +59,29 @@ class Beaver(Pet):
 
 
 class Cricket(Pet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self._name = 'CRICKET'
         self.attack = 1
         self.health = 2
 
+    @duplicate_action
     def on_faint(self):
         """Summon a Zombie Cricket."""
+        i = self._friends.index(self)
+        zombie = tokens.ZombieCricket(self)
         super().on_faint()
-        for i in range(len(self._friends)):
-            if id(self._friends[i]) == id(self):
-                del self._friends[i]
-                self._friends[i] = tokens.ZombieCricket(self)
+        self._friends.insert(i, zombie)
 
 
 class Fish(Pet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self._name = 'FISH'
         self.attack = 2
         self.health = 3
 
+    @capture_action
     def on_level_up(self):
         """Give all friends +(1*level) attack, +(1*level) health."""
         super().on_level_up()
@@ -85,12 +92,13 @@ class Fish(Pet):
 
 
 class Horse(Pet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self._name = 'HORSE'
         self.attack = 2
         self.health = 1
 
+    @duplicate_action
     def on_friend_summoned(self, index):
         """Give the friend +1 attack until end of battle."""
         if id(self._friends[index]) != id(self):
@@ -99,12 +107,14 @@ class Horse(Pet):
 
 
 class Mosquito(Pet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self._name = 'MOSQUITO'
         self.attack = 2
         self.health = 2
 
+    @capture_action
+    @duplicate_action
     def on_battle_start(self):
         """Deal 1 damage to (1*level) random enemies."""
         super().on_battle_start()
@@ -113,16 +123,17 @@ class Mosquito(Pet):
         if n_chosen >= 1:
             enemies = np.random.choice(choices, n_chosen, replace=False)
             for enemy in enemies:
-                enemy.health += 1 * self.level
+                enemy.health -= 1 * self.level
 
 
 class Otter(Pet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self._name = 'OTTER'
         self.attack = 1
         self.health = 2
 
+    @capture_action
     def on_buy(self):
         """Give a random friend +(1*level) health, +(1*level) attack."""
         super().on_buy()
@@ -138,12 +149,13 @@ class Otter(Pet):
 
 
 class Pig(Pet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self._name = 'PIG'
         self.attack = 3
         self.health = 1
 
+    @capture_action
     def on_sell(self):
         """Gain +(1*level) gold."""
         super().on_sell()
@@ -151,21 +163,8 @@ class Pig(Pet):
 
 
 class Sloth(Pet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self._name = 'SLOTH'
         self.attack = 1
         self.health = 1
-
-
-ROLL_CHANCES = {
-    Ant: 1/9,
-    Beaver: 1/9,
-    Cricket: 1/9,
-    Fish: 1/9,
-    Horse: 1/9,
-    Mosquito: 1/9,
-    Otter: 1/9,
-    Pig: 1/9,
-    Sloth: 1/9
-}
