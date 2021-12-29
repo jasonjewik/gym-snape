@@ -22,7 +22,7 @@ class Ant(Pet):
         self.attack = 2
         self.health = 1
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Give a random friend +(2*level) attack, +(1*level) health."""
         super().on_faint()
@@ -43,7 +43,6 @@ class Beaver(Pet):
         self.attack = 2
         self.health = 2
 
-    @capture_action
     def on_sell(self):
         """Give 2 random friends +(1*level) health."""
         super().on_sell()
@@ -65,7 +64,7 @@ class Cricket(Pet):
         self.attack = 1
         self.health = 2
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Summon a Zombie Cricket."""
         i = self._friends.index(self)
@@ -81,7 +80,6 @@ class Fish(Pet):
         self.attack = 2
         self.health = 3
 
-    @capture_action
     def on_level_up(self):
         """Give all friends +(1*level) attack, +(1*level) health."""
         super().on_level_up()
@@ -98,7 +96,7 @@ class Horse(Pet):
         self.attack = 2
         self.health = 1
 
-    @duplicate_action
+    @capture_action
     def on_friend_summoned(self, index):
         """Give the friend +1 attack until end of battle."""
         if id(self._friends[index]) != id(self):
@@ -114,7 +112,6 @@ class Mosquito(Pet):
         self.health = 2
 
     @capture_action
-    @duplicate_action
     def on_battle_start(self):
         """Deal 1 damage to (1*level) random enemies."""
         super().on_battle_start()
@@ -133,7 +130,6 @@ class Otter(Pet):
         self.attack = 1
         self.health = 2
 
-    @capture_action
     def on_buy(self):
         """Give a random friend +(1*level) health, +(1*level) attack."""
         super().on_buy()
@@ -155,7 +151,6 @@ class Pig(Pet):
         self.attack = 3
         self.health = 1
 
-    @capture_action
     def on_sell(self):
         """Gain +(1*level) gold."""
         super().on_sell()

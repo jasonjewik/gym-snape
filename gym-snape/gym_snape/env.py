@@ -244,6 +244,7 @@ class Snape(gym.Env):
 
     def reset(self):
         self.game = Game()  # create a new game
+        return self._get_obs()
 
     def _get_obs(self):
         # Get deck state

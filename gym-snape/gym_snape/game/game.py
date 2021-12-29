@@ -1,5 +1,4 @@
 # Standard library imports
-from copy import deepcopy
 from functools import wraps
 from collections.abc import Callable
 from typing import Any, Final, List, Optional, ParamSpec, Tuple, TypeVar
@@ -53,10 +52,14 @@ class Game:
         public method (except for `challenge`, see that method for details). 
         If False (default), public methods are executed without displaying 
         the resulting state of the game.
+
+    debug: bool
+        If True, print the state of the game at various points during battle.
     """
 
-    def __init__(self, display: bool = False):
+    def __init__(self, display: bool = False, debug: bool = False):
         self.deck = Deck()
+        self.deck.assign_game(self)
         self.shop = Shop()
 
         self._turn = 1
@@ -68,6 +71,7 @@ class Game:
         self._ROLL_COST: Final = 1
 
         self.display = display
+        self.debug = debug
         self._n_actions_taken = 0
         self._match_history = []
         self.roll(is_turn_start=True)
@@ -218,7 +222,7 @@ class Game:
     def match_history(self) -> List[MatchResult]:
         return self._match_history
 
-    @check_game_over
+    # @check_game_over
     def add_ability_to_cast(self, value: AbilityCastEntry):
         """
         Adds an ability to be cast at the next turn of the battle.
@@ -252,18 +256,26 @@ class Game:
         other_game_instance: Game
             The game instance with the enemy deck.
         """
-        # Merge and sort
-        a2c = self._abilities_to_cast + other_game_instance._abilities_to_cast
-        a2c.sort(key=lambda x: x[0], reverse=True)
-
-        # Cast abilities
-        for a in a2c:
-            pet, ability, args, kwargs = a
-            ability(pet, *args, **kwargs)
-
-        # Clear all abilities
-        self._abilities_to_cast = []
+        # Cast abilities until none left
+        # Note that more ability casts might be added while processing these
+        self._abilities_to_cast.extend(other_game_instance._abilities_to_cast)
         other_game_instance._abilities_to_cast = []
+
+        while len(self._abilities_to_cast) > 0:
+            # Sort abilities by requester's attack power
+            self._abilities_to_cast.sort(key=lambda x: x[0], reverse=True)
+
+            # Cast abilities that were initially requested
+            L = len(self._abilities_to_cast)
+            for _ in range(L):
+                a2c = self._abilities_to_cast.pop(0)
+                pet, ability, args, kwargs = a2c
+                ability(pet, *args, **kwargs)
+
+            # Check for more abilities that were triggered by the previous set
+            self._abilities_to_cast.extend(
+                other_game_instance._abilities_to_cast)
+            other_game_instance._abilities_to_cast = []
 
     @check_game_over
     @display_game
@@ -352,7 +364,6 @@ class Game:
         for i in range(len(self.shop)):
             if isinstance(self.shop[i].item, Pet):
                 self.shop[i].item.assign_game(self)
-                print(self.shop[i].item._game)
 
     @check_game_over
     @display_game
@@ -1031,7 +1042,10 @@ class Game:
             if pet:
                 pet.in_battle = True
 
-        print('Begin battle')
+        if self.debug:
+            print('Begin battle')
+            print(self.deck)
+            print(other_game_instance.deck)
 
         # Call on turn end for the pets
         for pet in self.deck:
@@ -1042,23 +1056,23 @@ class Game:
                 pet.on_turn_end()
         self.cast_all_abilities(other_game_instance)
 
-        print('Called end turn')
+        if self.debug:
+            print('Called end turn')
 
         # Make copies of each game instance's deck
-        my_deck = deepcopy(self.deck)
-        their_deck = deepcopy(other_game_instance.deck)
+        self.deck.prep_for_battle()
+        other_game_instance.deck.prep_for_battle()
 
         # Assign enemies to both decks
-        for i, pet in enumerate(my_deck):
+        for pet in self.deck:
             if pet:
-                pet.assign_enemies(their_deck)
-                print(f'my enemies {i}\n', pet._enemies)
-        for i, pet in enumerate(their_deck):
+                pet.assign_enemies(other_game_instance.deck)
+        for pet in other_game_instance.deck:
             if pet:
-                pet.assign_enemies(my_deck)
-                print(f'their enemies {i}\n', pet._enemies)
+                pet.assign_enemies(self.deck)
 
-        print('Assigned enemies')
+        if self.debug:
+            print('Assigned enemies')
 
         # Call on battle start for the pets
         for pet in self.deck:
@@ -1069,93 +1083,97 @@ class Game:
                 pet.on_battle_start()
         self.cast_all_abilities(other_game_instance)
 
-        print('Called on battle start')
+        if self.debug:
+            print('Called on battle start')
 
         # Battle until one or both decks are depleted
-        while not my_deck.is_empty() and not their_deck.is_empty():
-            print(my_deck)
-            print(their_deck)
+        while not self.deck.is_empty() and not other_game_instance.deck.is_empty():
+            if self.debug:
+                print(self.deck)
+                print(other_game_instance.deck)
 
             # Push pets toward each other
-            my_deck.shift_all_forward()
-            their_deck.shift_all_forward()
+            self.deck.shift_all_forward()
+            other_game_instance.deck.shift_all_forward()
 
             # Cast before attack abilities
-            my_deck[0].before_attack()
-            their_deck[0].before_attack()
+            self.deck[0].before_attack()
+            other_game_instance.deck[0].before_attack()
             self.cast_all_abilities(other_game_instance)
 
-            print('Called before attack abilities')
+            if self.debug: 
+                print('Called before attack abilities')
 
             # Determine damage to leading pets
-            my_first, their_first = my_deck[0], their_deck[0]
-            damage_to_me = their_first.attack
-            damage_to_them = my_first.attack
+            my_first, their_first = self.deck[0], other_game_instance.deck[0]
 
             # Determine splash damage
             my_splash = 5 if my_first.effect == 'Spl' else 0
             their_splash = 5 if their_first.effect == 'Spl' else 0
 
             # Leading pets hit each other "simultaneously"
-            my_deck[0].health -= damage_to_me
-            their_deck[0].health -= damage_to_them
+            self.deck[0].health -= their_first.attack
+            other_game_instance.deck[0].health -= my_first.attack
 
             # Apply poison damage
-            if my_first.effect == 'Psn' and their_deck[0].health < their_first.health:
-                their_deck[0].faint()
-            if their_first.effect == 'Psn' and my_deck[0].health < my_first.health:
-                my_deck[0].faint()
+            if my_first.effect == 'Psn' and other_game_instance.deck[0]:
+                if other_game_instance.deck[0].health < their_first.health:
+                    other_game_instance.deck[0].faint()
+            if their_first.effect == 'Psn' and self.deck[0]:
+                if self.deck[0].health < my_first.health:
+                    self.deck[0].faint()
 
             # Splash damage is applied
-            if my_deck[1]:
-                my_deck[1].health -= their_splash
-            if their_deck[1]:
-                their_deck[1].health -= my_splash
+            if self.deck[1]:
+                self.deck[1].health -= their_splash
+            if other_game_instance.deck[1]:
+                other_game_instance.deck[1].health -= my_splash
+
+            if self.debug:
+                print(self._abilities_to_cast)
 
             # Cast any on hurt and faint abilities
             self.cast_all_abilities(other_game_instance)
 
-            print('Cast on hurt and faint abilities')
+            if self.debug:
+                print('Cast on hurt and faint abilities')
 
             # Cast on knock out abilities
-            if my_deck[0] is None:
-                for pet in their_deck:
+            if self.deck[0] is None:
+                for pet in other_game_instance.deck:
                     if pet:
                         pet.on_knock_out()
-            if their_deck[0] is None:
-                for pet in my_deck:
+            if other_game_instance.deck[0] is None:
+                for pet in self.deck:
                     if pet:
                         pet.on_knock_out()
             self.cast_all_abilities(other_game_instance)
 
-            print('Cast knock out abilities')
+            if self.debug:
+                print('Cast knock out abilities')
 
             # Cast on friend attack abilities
-            for pet in my_deck:
+            for pet in self.deck:
                 if pet:
                     pet.on_friend_attack(0)
-            for pet in their_deck:
+            for pet in other_game_instance.deck:
                 if pet:
                     pet.on_friend_attack(0)
             self.cast_all_abilities(other_game_instance)
 
-            print('Cast on friend attacked abilities')
+            if self.debug:
+                print('Cast on friend attacked abilities')
 
-        print('Battle concluded')
+        if self.debug:
+            print('Battle concluded')
+            print(self.deck)
+            print(other_game_instance.deck)
 
-        # Assign rewards based on battle result
-        if not my_deck.is_empty() and their_deck.is_empty():
-            self.trophies += 1
-            other_game_instance.lives -= 1
-            self._match_history.append(MatchResult.WON)
-        elif my_deck.is_empty() and not their_deck.is_empty():
-            other_game_instance.trophies += 1
-            self.lives -= 1
-            self._match_history.append(MatchResult.LOST)
-        else:
-            self._match_history.append(MatchResult.DRAW)
+        # Restore both decks
+        self.deck.battle_cleanup()
+        other_game_instance.deck.battle_cleanup()
 
-        # Cast battle end abilities on the original copies of both decks
+        # Cast battle end abilities
         for pet in self.deck:
             if pet:
                 pet.on_battle_end()
@@ -1165,6 +1183,18 @@ class Game:
                 pet.on_battle_end()
                 pet.in_battle = False
         self.cast_all_abilities(other_game_instance)
+
+        # Assign rewards based on battle result
+        if not self.deck.is_empty() and other_game_instance.deck.is_empty():
+            self.trophies += 1
+            other_game_instance.lives -= 1
+            self._match_history.append(MatchResult.WON)
+        elif self.deck.is_empty() and not other_game_instance.deck.is_empty():
+            other_game_instance.trophies += 1
+            self.lives -= 1
+            self._match_history.append(MatchResult.LOST)
+        else:
+            self._match_history.append(MatchResult.DRAW)
 
         # Get new turn for challenger
         if self.display:

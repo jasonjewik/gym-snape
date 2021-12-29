@@ -24,7 +24,6 @@ class Boar(Pet):
         self.health = 6
 
     @capture_action
-    @duplicate_action
     def before_attack(self):
         """Gain +(2*level)/+(2*level)."""
         super().before_attack()
@@ -50,17 +49,14 @@ class Cat(Pet):
         self._shop.food_attack_multiplier = 1
         self._shop.food_health_multiplier = 1
 
-    @capture_action
     def on_buy(self):
         super().on_buy()
         self._modify_shop_food()
 
-    @capture_action
     def on_level_up(self):
         super().on_level_up()
         self._modify_shop_food()
 
-    @capture_action
     def on_sell(self):
         super().on_sell()
         self._reset_shop_modifiers()
@@ -86,7 +82,6 @@ class Dragon(Pet):
         self.attack = 6
         self.health = 8
 
-    @capture_action
     def on_friend_bought(self, index):
         """Give all pets +(1*level)/+(1*level) if a tier 1 friend is bought."""
         super().on_friend_bought()
@@ -106,7 +101,6 @@ class Fly(Pet):
         self.health = 5
         self._triggers = 3
 
-    @capture_action
     def on_battle_start(self):
         super().on_battle_start()
         self._triggers = 3
@@ -132,13 +126,11 @@ class Gorilla(Pet):
         self.health = 9
         self._triggers = self.level
 
-    @capture_action
     def on_battle_start(self):
         super().on_battle_start()
         self._triggers = self.level
 
     @capture_action
-    @duplicate_action
     def on_hurt(self):
         """Gain Coconut Shield 1/2/3 times per battle."""
         super().on_hurt()
@@ -155,11 +147,10 @@ class Leopard(Pet):
         self.health = 4
 
     @capture_action
-    @duplicate_action
     def on_battle_start(self):
         """Deal 50% attack to 1/2/3 enemies."""
         super().on_battle_start()
-        choices = [e for e in self._enemies]
+        choices = [e for e in self._enemies if e]
         n_chosen = min(len(choices), self.level)
         if n_chosen >= 1:
             for c in choices:
@@ -173,7 +164,7 @@ class Mammoth(Pet):
         self.attack = 3
         self.health = 10
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Give all friends +(2*level)/+(2*level)."""
         super().on_faint()
@@ -191,7 +182,6 @@ class Snake(Pet):
         self.health = 6
 
     @capture_action
-    @duplicate_action
     def on_friend_attack(self, index):
         """Deal (5*level) damage to a random enemy when friend ahead attacks."""
         super().on_friend_attack()

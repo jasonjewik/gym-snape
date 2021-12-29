@@ -24,7 +24,6 @@ class Bison(Pet):
         self.attack = 6
         self.health = 6
 
-    @capture_action
     def on_turn_end(self):
         """If there is at least 1 level 3 friend, gain +2/+2."""
         super().on_turn_end()
@@ -42,7 +41,7 @@ class Deer(Pet):
         self.attack = 1
         self.health = 1
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Summon a (5*level)/(5*level) Bus."""
         i = self._friends.index(self)
@@ -59,7 +58,6 @@ class Dolphin(Pet):
         self.health = 6
 
     @capture_action
-    @duplicate_action
     def on_battle_start(self):
         """Deal 5*level damage to the lowest health enemy."""
         super().on_battle_start()
@@ -82,7 +80,6 @@ class Hippo(Pet):
         self.health = 7
 
     @capture_action
-    @duplicate_action
     def on_knock_out(self):
         """Gain +(2*level)/+(2*level)."""
         super().on_knock_out()
@@ -97,7 +94,6 @@ class Parrot(Pet):
         self.attack = 5
         self.health = 3
 
-    @capture_action
     def on_turn_end(self):
         """Copy ability from friend ahead as a level 1/2/3 until end of battle."""
         super().on_turn_end()
@@ -110,16 +106,17 @@ class Parrot(Pet):
                 friend_ahead = deepcopy(self._friends[i])
             i -= 1
 
-        # Set the friend's level to equal own level
-        friend_ahead._level = self.level
-        # Set the friend's health and attack to own health/attack
-        friend_ahead.zombify(self.health, self.attack)
-        # Change friend's name
-        friend_ahead._name = self._name
+        if friend_ahead:
+            # Set the friend's level to equal own level
+            friend_ahead._level = self.level
+            # Set the friend's health and attack to own health/attack
+            friend_ahead.zombify(self.health, self.attack)
+            # Change friend's name
+            friend_ahead._name = self._name
 
-        # Replace self with friend
-        del self._friends[i]
-        self._friends.insert(i, friend_ahead)
+            # Replace self with friend
+            del self._friends[i]
+            self._friends.insert(i, friend_ahead)
 
 
 class Penguin(Pet):
@@ -148,7 +145,7 @@ class Rooster(Pet):
         self.attack = 5
         self.health = 3
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Summon 1/2/3 chicks with 1 health and half attack."""
         chicks = []
@@ -168,7 +165,6 @@ class Skunk(Pet):
         self.health = 6
 
     @capture_action
-    @duplicate_action
     def on_battle_start(self):
         """Reduce HP of highest health enemy by 33/66/99%."""
         super().on_battle_start()
@@ -193,7 +189,6 @@ class Squirrel(Pet):
         self.attack = 2
         self.health = 5
 
-    @capture_action
     def on_turn_start(self):
         """Discount current shop food by (1*level) gold."""
         super().on_turn_start()
@@ -211,7 +206,6 @@ class Whale(Pet):
         self._swallowed = None
 
     @capture_action
-    @duplicate_action
     def on_battle_start(self):
         """Swallow friend ahead, triggering their on faint ability."""
         super().on_battle_start()
@@ -222,14 +216,17 @@ class Whale(Pet):
                 self._friends[i].faint()
             i -= 1
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Release swallowed friend as same level as self."""
         i = self._friends.index(self)
-        self._swallowed.__init__()
-        self._swallowed._level = self.level
-        super().on_faint()
-        self._friends.insert(i, self._swallowed)
+        if self._swallowed:
+            self._swallowed.__init__()
+            self._swallowed._level = self.level
+            self._swallowed.assign_friends(self._friends)
+            self._swallowed.assign_enemies(self._enemies)
+            super().on_faint()
+            self._friends.insert(i, self._swallowed)
 
 
 class Worm(Pet):
@@ -239,7 +236,6 @@ class Worm(Pet):
         self.attack = 2
         self.health = 2
 
-    @capture_action
     def on_eat_food(self):
         """Gain +(1*level)/+(1*level)."""
         super().on_eat_food()

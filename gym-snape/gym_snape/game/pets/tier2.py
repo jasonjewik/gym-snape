@@ -26,7 +26,6 @@ class Crab(Pet):
         self.attack = 3
         self.health = 3
 
-    @capture_action
     def on_buy(self):
         """Copy the health of the healthiest friend."""
         super().on_buy()
@@ -42,7 +41,6 @@ class Dodo(Pet):
         self.health = 3
 
     @capture_action
-    @duplicate_action
     def on_battle_start(self):
         """Give attack to friend ahead, scaling with level."""
         i = self._friends.index(self) - 1
@@ -64,7 +62,6 @@ class Elephant(Pet):
         self.health = 5
 
     @capture_action
-    @duplicate_action
     def before_attack(self):
         """Deal 1 damage to 1/2/3 friends behind."""
         super().before_attack()
@@ -85,15 +82,16 @@ class Flamingo(Pet):
         self.attack = 3
         self.health = 1
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
-        """Give the two friends directly behind +(1*level)/+(1*level)."""
+        """Give the two friends behind +(1*level)/+(1*level)."""
         i = self._friends.index(self) + 1
-        stop = i + 2
-        while i < len(self._friends) and i < stop:
+        ability_casts = 0
+        while i < len(self._friends) and ability_casts < 2:
             if self._friends[i]:
                 self._friends[i].attack += 1 * self.level
                 self._friends[i].health += 1 * self.level
+                ability_casts += 1
             i += 1
         super().on_faint()
 
@@ -105,16 +103,18 @@ class Hedgehog(Pet):
         self.attack = 3
         self.health = 2
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Deal 2*level damage to all."""
-        for i in range(len(self._friends)):
-            if self._friends[i]:
-                self._friends[i].health -= 2 * self.level
-        for i in range(len(self._enemies)):
-            if self._enemies[i]:
-                self._enemies[i].health -= 2 * self.level
         super().on_faint()
+        dmg = 2 * self.level
+        for friend in self._friends:
+            if friend:
+                friend.health -= dmg
+        if self._enemies:  # might not have enemies if fainted in shop
+            for enemy in self._enemies:
+                if enemy:
+                    enemy.health -= dmg
 
 
 class Peacock(Pet):
@@ -125,7 +125,6 @@ class Peacock(Pet):
         self.health = 5
 
     @capture_action
-    @duplicate_action
     def on_hurt(self):
         """Gain 2*level attack."""
         super().on_hurt()
@@ -139,7 +138,7 @@ class Rat(Pet):
         self.attack = 4
         self.health = 5
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Summon a dirty rat on the enemy team."""
         super().on_faint()
@@ -153,7 +152,6 @@ class Shrimp(Pet):
         self.attack = 2
         self.health = 3
 
-    @capture_action
     def on_friend_sold(self):
         """Give a random friend +(1*level) health."""
         super().on_friend_sold()
@@ -175,7 +173,7 @@ class Spider(Pet):
         self.attack = 2
         self.health = 2
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Summon a level 1/2/3 tier 3 pet as a 2/2."""
         i = self._friends.index(self)
@@ -196,6 +194,8 @@ class Spider(Pet):
         spawn = np.random.choice(choices, 1)[0]()
         spawn.zombify(2, 2)
         spawn._level = self.level
+        spawn.assign_friends(self._friends)
+        spawn.assign_enemies(self._enemies)
         self._friends.insert(i, spawn)
 
 
@@ -206,7 +206,6 @@ class Swan(Pet):
         self.attack = 3
         self.health = 3
 
-    @capture_action
     def on_turn_start(self):
         """Gain +(1*level) gold."""
         self._game.gold += 1 * self.level

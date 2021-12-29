@@ -49,8 +49,6 @@ class Food(ABC):
     def gold_cost(self, value: int):
         if type(value) != int:
             raise TypeError('gold cost must be integer value')
-        elif value < 0:
-            raise Warning('negative gold cost set to 0')
         self._gold_cost = max(0, value)
 
     @property

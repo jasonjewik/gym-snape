@@ -24,7 +24,6 @@ class Cow(Pet):
         self.attack = 4
         self.health = 6
 
-    @capture_action
     def on_buy(self):
         """Replace current shop items with milk."""
         super().on_buy()
@@ -41,14 +40,13 @@ class Crocodile(Pet):
         self.health = 4
 
     @capture_action
-    @duplicate_action
     def on_battle_start(self):
         """Deal 8*level damage to the last enemy."""
         super().on_battle_start()
         i = len(self._enemies) - 1
         while i > 0:
             if self._enemies[i]:
-                self._enemies.health -= 8 * self.level
+                self._enemies[i].health -= 8 * self.level
                 break
             i -= 1
 
@@ -60,7 +58,6 @@ class Monkey(Pet):
         self.attack = 1
         self.health = 2
 
-    @capture_action
     def on_turn_end(self):
         """Give rightmost friend +(3*level)/+(3*level)."""
         super().on_turn_end()
@@ -81,7 +78,6 @@ class Rhino(Pet):
         self.health = 8
 
     @capture_action
-    @duplicate_action
     def on_knock_out(self):
         """Deal (4*level) damage to the first enemy."""
         super().on_knock_out()
@@ -90,6 +86,7 @@ class Rhino(Pet):
             if self._enemies[i]:
                 self._enemies[i].health -= 4 * self.level
                 break
+            i += 1
 
 
 class Scorpion(Pet):
@@ -108,7 +105,6 @@ class Seal(Pet):
         self.attack = 3
         self.health = 8
 
-    @capture_action
     def on_eat_food(self):
         """Give 2 random friends +(1*level)/+(1*level)."""
         choices = []
@@ -117,7 +113,7 @@ class Seal(Pet):
                 choices.append(friend)
         n_choices = min(len(choices), 2)
         if n_choices >= 1:
-            chosen = np.random.choice(choices, 2, replace=False)
+            chosen = np.random.choice(choices, n_choices, replace=False)
             for c in chosen:
                 c.health += 1 * self.level
                 c.attack += 1 * self.level
@@ -131,8 +127,7 @@ class Shark(Pet):
         self.health = 4
 
     @capture_action
-    @duplicate_action
-    def on_friend_faint(self):
+    def on_friend_faint(self, *args, **kwargs):
         """Gain +(2*level)/+(1*level)."""
         self.health += 2 * self.level
         self.attack += 1 * self.level
@@ -145,7 +140,7 @@ class Turkey(Pet):
         self.attack = 3
         self.health = 4
 
-    @duplicate_action
+    @capture_action
     def on_friend_summoned(self, index):
         """Give the friend +(3*level)/+(3*level)."""
         if id(self._friends[index]) != id(self):

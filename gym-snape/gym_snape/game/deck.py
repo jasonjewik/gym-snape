@@ -1,4 +1,5 @@
 # Standard library imports
+from copy import deepcopy
 from typing import Literal, Final
 
 # Local application imports
@@ -15,6 +16,7 @@ class Deck:
         self.N_DECK_SLOTS: Final = 5
         self._pets = [None] * self.N_DECK_SLOTS
         self._last_op_success = True
+        self._game = None
 
     def __getitem__(self, index: int) -> Pet:
         return self._pets[index]
@@ -33,7 +35,7 @@ class Deck:
                 value.assign_friends(self)
                 self._pets[index] = value
                 for pet in self:  # trigger on summon abilities
-                    if pet:
+                    if pet and id(pet) != id(value):
                         pet.on_friend_summoned(index)
             # Add pet to slot containing pet of same type
             elif type(self[index]) == type(value) and self[index].can_level():
@@ -155,6 +157,80 @@ class Deck:
                     self[index] = pet
                     self._last_op_success = True
 
+    def assign_game(self, value):
+        """
+        Assigns a game instance to this deck.
+        """
+        self._game = value
+
+    def prep_for_battle(self):
+        """
+        Prepares this deck for usage in combat.
+
+        Creates and saves copies of all the current deck pets, to be restored
+        after the battle by `battle_cleanup`.
+
+        Notes
+        ----------
+        We cannot simply use Python's copy.deepcopy on an instance of the deck
+        to prepare it for battle because copy.deepcopy will assign to each deck
+        pet a new instance of Game to its _game variable. Therefore, when deck
+        deck pets hand up their ability casts to the battle manager, they will 
+        be giving it to the copy of the Game rather than the original Game 
+        instance which is actually running the battle. 
+
+        Raises
+        ----------
+        RuntimeError if `prep_for_battle` was called previously and not
+        followed up with `battle_cleanup` (i.e., it is illegal to call this
+        method consecutively with cleaning up in between each call)
+
+        See also
+        ----------
+        - `battle_cleanup`
+        """
+        # Check if called previously without cleanup
+        try:
+            self.__prebattle_deck_copy
+            raise RuntimeError(
+                'prep_for_battle was called previously without cleanup')
+        except AttributeError:
+            pass
+
+        # We use a deepcopy here since it will ensure that the hp, attack, and
+        # other stats of the saved copy are not modified by the battle
+        self.__prebattle_deck_copy = deepcopy(self._pets)
+
+    def battle_cleanup(self):
+        """
+        Cleans up any changes made during the battle.
+
+        Restores all pets to their state as they were before the battle.
+
+        Raises
+        ----------
+        RuntimeError if `prep_for_battle` is not called first.
+
+        See also
+        ----------
+        - `prep_for_battle`
+        """
+        try:  # check if prep_for_battle was called first
+            self.__prebattle_deck_copy
+        except AttributeError:
+            raise RuntimeError('prep_for_battle has not yet been called')
+
+        # Restore attributes of each pet
+        for i in range(len(self._pets)):
+            self._pets[i] = self.__prebattle_deck_copy[i]
+            if self._pets[i]:
+                self._pets[i].assign_game(self._game)
+                self._pets[i].assign_friends(self._game.deck)
+                self._pets[i].assign_shop(self._game.shop)
+
+        # Remove temporary variable to indicate cleanup complete
+        del self.__prebattle_deck_copy
+
     def swap(self, source: int, destination: int):
         """
         Swaps the contents of two deck slots.
@@ -225,10 +301,8 @@ class Deck:
         front = self._pets[:index+1]
         back = self._pets[index+1:]
         i = len(front) - 1
-        while True:
+        while i > -1:  # this means we tried pushing everything already
             if front[-1] is None:  # we have cleared a spot
-                break
-            elif i == -1:  # we tried pushing everything already
                 break
             elif front[i] is None:  # we have space to push up
                 front = front[:i] + front[i+1:] + [None]
@@ -242,13 +316,11 @@ class Deck:
 
         Tries to make the given slot empty.
         """
-        front = self._pets[:index+1]
-        back = self._pets[index+1:]
+        front = self._pets[:index]
+        back = self._pets[index:]
         i = 0
-        while True:
+        while i < len(back):  # this means we tried pushing everything already
             if back[0] is None:  # we have cleared a spot
-                break
-            elif i == len(back):  # we tried pushing everything already
                 break
             elif back[i] is None:  # we have space to push back
                 back = [None] + back[:i] + back[i+1:]

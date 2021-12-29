@@ -107,7 +107,8 @@ class Shop:
                 # Put the index of the shop slot in the corner of the card
                 item_str_arr = str(item).replace('+', str(i)).split('\n')
                 if is_frozen:  # mark frozen slots with an asterisk
-                    item_str_arr[1] = item_str_arr[1].replace(' ', '*', 1)
+                    name_row = item_str_arr[1]
+                    item_str_arr[1] = name_row[:-2] + '*' + '|'
                 item_str_arr = [i + '\n' for i in item_str_arr]
                 substrs.append(item_str_arr)
             else:  # representation for the empty slot (None)

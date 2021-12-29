@@ -23,7 +23,7 @@ class Badger(Pet):
         self.attack = 5
         self.health = 4
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Deal attack*level damage to adjacent pets."""
         damage = self.attack * self.level
@@ -53,7 +53,6 @@ class BlowFish(Pet):
         self.health = 5
 
     @capture_action
-    @duplicate_action
     def on_hurt(self):
         """Deal 2*level damage to a random enemy."""
         super().on_hurt()
@@ -73,16 +72,16 @@ class Camel(Pet):
         self.health = 5
 
     @capture_action
-    @duplicate_action
     def on_hurt(self):
         """Give friend behind +(1*level) attack, +(2*level) health."""
         super().on_hurt()
-        i = self._game.index(self) + 1
-        while i < len(self._game):
-            if self._game[i]:
-                self._game[i].attack += 1 * self.level
-                self._game[i].health += 2 * self.level
+        i = self._friends.index(self) + 1
+        while i < len(self._friends):
+            if self._friends[i]:
+                self._friends[i].attack += 1 * self.level
+                self._friends[i].health += 2 * self.level
                 break
+            i += 1
 
 
 class Dog(Pet):
@@ -92,7 +91,7 @@ class Dog(Pet):
         self.attack = 2
         self.health = 2
 
-    @duplicate_action
+    @capture_action
     def on_friend_summoned(self, *args, **kwargs):
         """Gain +(1*level) health or attack (temporary if in battle)."""
         super().on_friend_summoned()
@@ -110,7 +109,6 @@ class Giraffe(Pet):
         self.attack = 2
         self.health = 5
 
-    @capture_action
     def on_turn_end(self):
         """Give 1/2/3 friends ahead +1/+1."""
         super().on_turn_end()
@@ -132,7 +130,6 @@ class Kangaroo(Pet):
         self.health = 2
 
     @capture_action
-    @duplicate_action
     def on_friend_attack(self, index):
         """Friend ahead attacks: gain +(2*level) attack and health."""
         super().on_friend_attack()
@@ -160,7 +157,6 @@ class Ox(Pet):
         self.health = 4
 
     @capture_action
-    @duplicate_action
     def on_friend_faint(self, friend_index):
         """Friend ahead faints: gain melon armor and +(2*level) attack."""
         my_index = self._friends.index(self)
@@ -185,7 +181,6 @@ class Rabbit(Pet):
         self.attack = 3
         self.health = 2
 
-    @capture_action
     def on_friend_eat_food(self, index):
         """Give the friend +(1*level) health."""
         super().on_friend_eat_food()
@@ -199,13 +194,19 @@ class Sheep(Pet):
         self.attack = 2
         self.health = 2
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Summon two (2*level)/(2*level) Rams."""
-        super().on_faint()
         index = self._friends.index(self)
-        self._friends.insert(index, tokens.Ram(self))
-        self._friends.insert(index, tokens.Ram(self))
+        r1 = tokens.Ram(self)
+        r1.assign_friends(self._friends)
+        r1.assign_enemies(self._enemies)
+        r2 = tokens.Ram(self)
+        r2.assign_friends(self._friends)
+        r2.assign_enemies(self._enemies)
+        super().on_faint()
+        self._friends.insert(index, r1)
+        self._friends.insert(index, r2)
 
 
 class Snail(Pet):
@@ -215,11 +216,12 @@ class Snail(Pet):
         self.attack = 2
         self.health = 2
 
-    @capture_action
     def on_buy(self):
         """Give all friends +(2*level)/+(1*level), if last battle was lost."""
         super().on_buy()
-        if self._game.match_history[-1] == MatchResult.LOST:
+        if len(self._game.match_history) == 0:
+            return
+        elif self._game.match_history[-1] == MatchResult.LOST:
             for i in range(len(self._friends)):
                 if self._friends[i] and id(self._friends[i]) != id(self):
                     self._friends[i].attack += 2 * self.level
@@ -233,7 +235,7 @@ class Turtle(Pet):
         self.attack = 1
         self.health = 2
 
-    @duplicate_action
+    @capture_action
     def on_faint(self):
         """Gives 1/2/3 friends behind Melon Armor effect."""
         super().on_faint()
@@ -243,3 +245,4 @@ class Turtle(Pet):
             if self._friends[i]:
                 self._friends[i]._effect = 'Mln'
                 num_affected += 1
+            i += 1

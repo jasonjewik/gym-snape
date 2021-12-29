@@ -66,6 +66,8 @@ class Pet:
         self.effect = None
 
         self._in_battle = False
+        self._friends = None
+        self._enemies = None
         self._duplicate_as = 0
 
     def __str__(self):
@@ -193,9 +195,9 @@ class Pet:
                 self.effect = None
             prev_health = self.health
             self._health = min(value, self._MAX_HEALTH)
-            if self.health <= 0:
+            if self.health <= 0 and 0 < prev_health:
                 self.on_faint()
-            elif self.health < prev_health:
+            if 0 < self.health and self.health < prev_health:
                 self.on_hurt()
         else:
             raise TypeError('health must be an integer')
@@ -343,8 +345,6 @@ class Pet:
         """
         Set the health/attack without incurring on hurt effects.
 
-        This also re-initializes the pet, resetting exp, level, etc.
-
         Parameters
         ----------
         health: int
@@ -356,9 +356,9 @@ class Pet:
         if type(health) != int or type(attack) != int:
             raise TypeError('health and attack must be integer values')
         else:
-            self.__init__()
             self._health = health
             self._attack = attack
+            self._effect = None
 
     """
     The following functions are to be overriden according to each pet's unique
@@ -369,12 +369,10 @@ class Pet:
     # Begin shop phase only functions.
     ####
 
-    @capture_action
     def on_buy(self, *args, **kwargs):
         """What happens when this pet is bought from the shop."""
         self._gold_cost = 1
 
-    @capture_action
     def on_eat_food(self, *args, **kwargs):
         """What happens when this pet eats food."""
         # Trigger friends' on friend eat food abilities
@@ -383,37 +381,26 @@ class Pet:
             if self._friends[i]:
                 self._friends[i].on_friend_eat_food(index)
 
-    @capture_action
     def on_friend_bought(self, *args, **kwargs):
         """What happens when a friendly pet is bought."""
         pass
 
-    @capture_action
     def on_friend_eat_food(self, *args, **kwargs):
         """What happens when a friendly pet eats food."""
         pass
 
-    @capture_action
     def on_friend_sold(self, *args, **kwargs):
         """What happens when a friendly pet is sold."""
         pass
 
-    @capture_action
     def on_level_up(self, *args, **kwargs):
         """What happens when this pet levels up."""
         self._gold_cost += 1
 
-    @capture_action
     def on_sell(self, *args, **kwargs):
         """What happens when this pet is sold."""
         pass
 
-    @capture_action
-    def on_turn_end(self, *args, **kwargs):
-        """What happens when the turn ends."""
-        pass
-
-    @capture_action
     def on_turn_start(self, *args, **kwargs):
         """What happens when the turn starts."""
         pass
@@ -422,21 +409,6 @@ class Pet:
     # Begin battle phase only functions.
     #####
 
-    @capture_action
-    def on_battle_end(self, *args, **kwargs):
-        """What happens when the battle phase ends."""
-        # Resets the health and attack buffs
-        self._health_buff = 0
-        self._attack_buff = 0
-
-    @capture_action
-    def on_battle_start(self, *args, **kwargs):
-        """What happens when the battle phase starts."""
-        # Grants health and attack buffs, capped at max values
-        self.health += self._health_buff
-        self.attack += self._attack_buff
-
-    @capture_action
     def before_attack(self, *args, **kwargs):
         """What happens before attacking."""
         # Grant steak attack modifier
@@ -446,14 +418,28 @@ class Pet:
         elif self._effect == 'Bne':
             self.attack += 5
 
-    @capture_action
+    def on_battle_end(self, *args, **kwargs):
+        """What happens when the battle phase ends."""
+        # Resets the health and attack buffs
+        self._health_buff = 0
+        self._attack_buff = 0
+
+    def on_battle_start(self, *args, **kwargs):
+        """What happens when the battle phase starts."""
+        # Grants health and attack buffs, capped at max values
+        self.health += self._health_buff
+        self.attack += self._attack_buff
+
     def on_friend_attack(self, *args, **kwargs):
         """What happens when a friend attacks."""
         pass
 
-    @capture_action
     def on_knock_out(self, *args, **kwargs):
         """What happens when this pet knocks out an opponent."""
+        pass
+
+    def on_turn_end(self, *args, **kwargs):
+        """What happens when the turn ends."""
         pass
 
     #####
@@ -468,9 +454,9 @@ class Pet:
             del self._friends[index]
 
         # Trigger friends' on friend faint abilities
-        for i in range(len(self._friends)):
-            if self._friends[i]:
-                self._friends[i].on_friend_faint(index)
+        for friend in self._friends:
+            if friend and id(friend) != id(self):
+                friend.on_friend_faint(index)
 
         # Summon a honey bee
         if self.effect == 'Bee':
@@ -482,11 +468,9 @@ class Pet:
 
         # Come back to life
         elif self.effect == '1up':
-            replacement = deepcopy(self)
-            replacement.zombify()
-            self._friends[index] = replacement
+            self.zombify()
+            self._friends.insert(index, self)
 
-    @capture_action
     def on_friend_faint(self, *args, **kwargs):
         """What happens when a friendly pet faints."""
         pass
@@ -499,7 +483,6 @@ class Pet:
         """
         pass
 
-    @capture_action
     def on_hurt(self, *args, **kwargs):
         """What happens when this pet is hurt."""
         pass
