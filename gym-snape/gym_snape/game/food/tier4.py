@@ -32,9 +32,9 @@ class Pear(Food):
 
     def on_use(self, index):
         """Give a deck pet +2/+2."""
-        if self._deck[index] is not None:
-            self._deck[index].health += self.attack
-            self._deck[index].attack += self.health
+        if self._deck[index]:
+            self._deck[index].attack += self.attack
+            self._deck[index].health += self.health
             self._last_op_success = True
         else:
             self._last_op_success = False
