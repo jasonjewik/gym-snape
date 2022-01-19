@@ -227,6 +227,8 @@ class Whale(Pet):
             self._swallowed.assign_enemies(self._enemies)
             super().on_faint()
             self._friends.insert(i, self._swallowed)
+        else:
+            super().on_faint()
 
 
 class Worm(Pet):
