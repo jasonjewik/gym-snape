@@ -2,21 +2,19 @@
 
 I'm tired of losing consistently in _[Super Auto Pets](https://store.steampowered.com/app/1714040/Super_Auto_Pets/)_, so I made this environment to train an RL agent to play for me.
 
-This repository comes with a playable version of _Super Auto Pets_. See `gym-snape/gym_snape/game/README.md` for details.
-
-Currently tested only on Windows.
+This repository comes with a playable version of _Super Auto Pets_. See [`gym-snape/gym_snape/game/README.md`](gym-snape/gym_snape/game/README.md) for details.
 
 ## Installation
 
 ```shell
-$ conda env create -f conda_envs/windows.yml
+$ conda env create -f environment.yml
 $ conda activate snape
 $ pip install -e gym-snape
 ```
 
 ## Example
 
-Pit two agents that pick actions randomly against each other.
+Pit two basic agents against each other.
 
 ```python
 >>> python example.py
