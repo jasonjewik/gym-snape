@@ -99,7 +99,7 @@ class Horse(Pet):
     @capture_action
     def on_friend_summoned(self, index):
         """Give the friend +1 attack until end of battle."""
-        if id(self._friends[index]) != id(self):
+        if self._friends[index] and id(self._friends[index]) != id(self):
             super().on_friend_summoned(index)
             self._friends[index].attack_buff += 1
 

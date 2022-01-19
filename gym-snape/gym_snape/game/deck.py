@@ -1,6 +1,6 @@
 # Standard library imports
 from copy import deepcopy
-from typing import Literal, Final
+from typing import Final, Literal, Optional
 
 # Local application imports
 from gym_snape.game.food import Food
@@ -18,7 +18,7 @@ class Deck:
         self._last_op_success = True
         self._game = None
 
-    def __getitem__(self, index: int) -> Pet:
+    def __getitem__(self, index: int) -> Optional[Pet]:
         return self._pets[index]
 
     def __setitem__(self, index: int, value: Pet | Food | None):
