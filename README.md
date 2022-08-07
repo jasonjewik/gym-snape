@@ -1,5 +1,9 @@
 # Super Nifty Auto Pets Environment (SNAPE)
 
+**EDIT (August 7, 2022)**: I decided to switch to implementing my own simple auto battler in C++ (which is not going to be a particularly faithful adaptation of _Super Auto Pets_), called _[A C++ Auto Battler (ACAB)](https://github.com/jasonjewik/acab)_. When _ACAB_ is in a playable state, I'll create another repo to wrap _ACAB_ in an OpenAI Gym environment. That's the plan anyway.
+
+-----
+
 I'm tired of losing consistently in _[Super Auto Pets](https://store.steampowered.com/app/1714040/Super_Auto_Pets/)_, so I made this environment to train an RL agent to play for me.
 
 This repository comes with a playable version of _Super Auto Pets_. See [`gym-snape/gym_snape/game/README.md`](gym-snape/gym_snape/game/README.md) for details.
